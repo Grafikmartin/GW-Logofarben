@@ -17,7 +17,6 @@
       </header>
 
       <section class="controls card">
-        <h2 class="controls-title">Farben</h2>
         <div class="color-controls">
           <label class="color-control color-control--base">
             <span class="color-control-label">GET-VIZE</span>
@@ -55,7 +54,7 @@
         <p id="storageHint" class="storage-hint" role="status" aria-live="polite"></p>
         <label class="save-name-label">
           <span>Name der Farbvariante</span>
-          <input type="text" id="variantName" class="save-name-input" placeholder="z. B. Corporate, Print, …" maxlength="80" />
+          <input type="text" id="variantName" class="save-name-input" placeholder="" maxlength="80" />
         </label>
         <div class="save-actions">
           <button type="button" id="btnSave" class="btn btn--primary">Aktuelle Farben speichern</button>
@@ -88,11 +87,17 @@
           return "rgba(" + r + "," + g + "," + b + "," + alpha + ")";
         }
 
+        function updateVariantNamePlaceholder() {
+          if (variantNameInput)
+            variantNameInput.placeholder = colorBaseInput.value + ", " + colorTopInput.value;
+        }
+
         function updateBaseColor() {
           var hex = colorBaseInput.value;
           logoBase.style.backgroundColor = hex;
           if (logoBaseDark) logoBaseDark.style.backgroundColor = hex;
           if (valueBase) valueBase.textContent = hex;
+          updateVariantNamePlaceholder();
         }
         function updateTopColor() {
           var hex = colorTopInput.value;
@@ -100,6 +105,7 @@
           if (logoTopDark) logoTopDark.style.backgroundColor = hex;
           if (valueTop) valueTop.textContent = hex;
           document.body.style.backgroundColor = hexToRgba(hex, 0.1);
+          updateVariantNamePlaceholder();
         }
 
         var STORAGE_KEY = "gw-logofarben";
@@ -210,6 +216,7 @@
         showSavedPreview();
         updateBaseColor();
         updateTopColor();
+        updateVariantNamePlaceholder();
       })();
     </script>
   </body>

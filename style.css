@@ -58,18 +58,12 @@
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
   }
   
-  .controls-title {
-    margin: 0 0 1.25rem;
-    font-size: 1rem;
-    font-weight: 600;
-    color: #333;
-  }
-  
   .color-controls {
     display: flex;
     flex-wrap: wrap;
     gap: 1.5rem 2.5rem;
     align-items: flex-start;
+    justify-content: center;
   }
   
   .color-control {
@@ -88,8 +82,9 @@
 
   .color-control-row {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.5rem;
   }
   
   .color-picker {
@@ -116,10 +111,9 @@
 
   .color-value {
     font-family: ui-monospace, "SF Mono", Consolas, monospace;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     font-weight: 500;
     color: #444;
-    min-width: 5.5em;
   }
 
   .logo-section {
