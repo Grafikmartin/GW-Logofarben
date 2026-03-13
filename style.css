@@ -348,7 +348,7 @@
   }
   
   .logo-base {
-    background-color: #b7beb8; /* Fallback, wird per JS überschrieben */
+    background-color: #b7ccc7; /* Fallback, wird per JS überschrieben */
   
     -webkit-mask-image: url("asstes/GET-VIZE.svg");
     -webkit-mask-repeat: no-repeat;
@@ -362,7 +362,7 @@
   }
   
   .logo-top {
-    background-color: #3f9440; /* Fallback, wird per JS überschrieben */
+    background-color: #558b7e; /* Fallback, wird per JS überschrieben */
   
     -webkit-mask-image: url("asstes/---V----.svg");
     -webkit-mask-repeat: no-repeat;
