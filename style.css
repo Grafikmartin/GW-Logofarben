@@ -1,8 +1,10 @@
 :root {
-    --logo-width: 80vw;
+    --logo-width: 60vw;
     --logo-base-color: #111111;
     --logo-top-color: #c00000;
-    --top-spacing: 4rem;
+    --top-spacing: 2rem;
+    --card-radius: 12px;
+    --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
   }
   
   * {
@@ -11,22 +13,63 @@
   
   body {
     margin: 0;
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: "Roboto", sans-serif;
     background: rgba(63, 148, 64, 0.1); /* V-Farbe 10 %, wird per JS aktualisiert */
     color: #1a1a1a;
+    line-height: 1.5;
   }
   
   .page {
     min-height: 100vh;
     padding: 2rem 1.5rem 3rem;
+    max-width: 56rem;
+    margin: 0 auto;
+  }
+
+  .page-header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .page-title {
+    margin: 0 0 0.35em;
+    font-size: 1.75rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: #111;
+  }
+
+  .page-subtitle {
+    margin: 0;
+    font-size: 1rem;
+    color: #555;
   }
   
-  .controls {
+  .card {
+    background: #fff;
+    border-radius: var(--card-radius);
+    box-shadow: var(--card-shadow);
+    padding: 1.5rem 1.75rem;
+    margin-bottom: var(--top-spacing);
+  }
+
+  .card--dark {
+    background: #1a1a1a;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  }
+  
+  .controls-title {
+    margin: 0 0 1.25rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #333;
+  }
+  
+  .color-controls {
     display: flex;
     flex-wrap: wrap;
-    gap: 1rem 2rem;
-    justify-content: center;
-    align-items: center;
+    gap: 1.5rem 2.5rem;
+    align-items: flex-start;
   }
   
   .color-control {
@@ -34,21 +77,49 @@
     flex-direction: column;
     gap: 0.5rem;
     font-size: 0.95rem;
+    cursor: default;
+  }
+
+  .color-control-label {
+    font-weight: 600;
+    color: #333;
+    font-size: 0.9rem;
+  }
+
+  .color-control-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
   }
   
-  .color-control input[type="color"] {
-    width: 70px;
-    height: 44px;
-    padding: 0;
-    border: none;
-    background: transparent;
+  .color-picker {
+    width: 48px;
+    height: 48px;
+    padding: 4px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    background: #fff;
     cursor: pointer;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+
+  .color-picker:hover {
+    border-color: #999;
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.06);
+  }
+
+  .color-picker:focus {
+    outline: none;
+    border-color: #1a1a1a;
+    box-shadow: 0 0 0 3px rgba(26, 26, 26, 0.15);
   }
 
   .color-value {
-    font-family: ui-monospace, monospace;
-    font-size: 0.9rem;
-    color: #333;
+    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #444;
+    min-width: 5.5em;
   }
 
   .logo-section {
@@ -59,31 +130,142 @@
     gap: 1rem;
   }
 
-  .logo-section--light {
-    background: #fff;
-    padding: 2rem 1rem;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  .logo-section--light.card {
+    padding: 2rem 1.5rem;
   }
 
-  .logo-section--dark {
+  .logo-section--dark.card {
     background: #000;
-    padding: 2rem 1rem;
-    border-radius: 8px;
+    padding: 2rem 1.5rem;
   }
 
-  .logo-section-title {
-    margin: 0;
+  .save-section.card {
+    text-align: center;
+  }
+
+  .save-section-title {
+    margin: 0 0 1.25rem;
     font-size: 1rem;
     font-weight: 600;
+    color: #333;
   }
 
-  .logo-section--light .logo-section-title {
-    color: #1a1a1a;
+  .save-name-label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin-bottom: 1.25rem;
+    text-align: left;
+    max-width: 22rem;
+    margin-left: auto;
+    margin-right: auto;
   }
 
-  .logo-section--dark .logo-section-title {
+  .save-name-label span {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .save-name-input {
+    padding: 0.55rem 0.75rem;
+    font-size: 1rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    transition: border-color 0.15s;
+  }
+
+  .save-name-input:focus {
+    outline: none;
+    border-color: #1a1a1a;
+  }
+
+  .save-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: center;
+  }
+
+  .btn {
+    padding: 0.6rem 1.25rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    border-radius: 8px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+  }
+
+  .btn--primary {
+    background: #1a1a1a;
     color: #fff;
+  }
+
+  .btn--primary:hover {
+    background: #333;
+  }
+
+  .btn--secondary {
+    background: transparent;
+    color: #1a1a1a;
+    border-color: #1a1a1a;
+  }
+
+  .btn--secondary:hover {
+    background: #f0f0f0;
+  }
+
+  .save-status {
+    margin: 0.75rem 0 0;
+    font-size: 0.9rem;
+    min-height: 1.4em;
+  }
+
+  .save-status--ok {
+    color: #0a6b0a;
+  }
+
+  .save-status--error {
+    color: #b00;
+  }
+
+  .storage-hint {
+    margin: 0 0 0.75rem;
+    font-size: 0.85rem;
+    color: #666;
+  }
+
+  .saved-preview {
+    margin-top: 1.25rem;
+    padding: 0.9rem 1.1rem;
+    font-size: 0.9rem;
+    text-align: left;
+    background: #f5f5f5;
+    border-radius: 8px;
+    border: 1px solid #e8e8e8;
+    max-width: 26rem;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .saved-preview--empty {
+    color: #666;
+  }
+
+  .saved-preview code {
+    font-family: ui-monospace, monospace;
+    font-size: 0.9em;
+  }
+
+  .saved-preview .swatch {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    margin-left: 0.25rem;
+    vertical-align: middle;
+    border: 1px solid #999;
+    border-radius: 2px;
   }
   
   .logo-stage {
@@ -133,7 +315,7 @@
   
   @media (max-width: 700px) {
     :root {
-      --logo-width: 90vw;
+      --logo-width: 80vw;
       --top-spacing: 3rem;
     }
   

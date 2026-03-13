@@ -4,38 +4,65 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Logo Farbwahl</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <main class="page">
-      <section class="controls">
-        <label class="color-control">
-          <span>Farbe für GET-VIZE.svg</span>
-          <input type="color" id="colorBase" value="#b7beb8" />
-          <output class="color-value" id="valueBase" for="colorBase">#b7beb8</output>
-        </label>
+      <header class="page-header">
+        <h1 class="page-title">Logo-Farbwahl</h1>
+        <p class="page-subtitle">Wähle die Farben und sieh das Logo auf hellem und dunklem Grund.</p>
+      </header>
 
-        <label class="color-control">
-          <span>Farbe für ---V----.svg</span>
-          <input type="color" id="colorTop" value="#3f9440" />
-          <output class="color-value" id="valueTop" for="colorTop">#3f9440</output>
-        </label>
+      <section class="controls card">
+        <h2 class="controls-title">Farben</h2>
+        <div class="color-controls">
+          <label class="color-control color-control--base">
+            <span class="color-control-label">GET-VIZE</span>
+            <div class="color-control-row">
+              <input type="color" id="colorBase" value="#b7beb8" class="color-picker" aria-label="Farbe für GET-VIZE" />
+              <output class="color-value" id="valueBase" for="colorBase">#b7beb8</output>
+            </div>
+          </label>
+          <label class="color-control color-control--top">
+            <span class="color-control-label">V-Akzent</span>
+            <div class="color-control-row">
+              <input type="color" id="colorTop" value="#3f9440" class="color-picker" aria-label="Farbe für V-Akzent" />
+              <output class="color-value" id="valueTop" for="colorTop">#3f9440</output>
+            </div>
+          </label>
+        </div>
       </section>
 
-      <section class="logo-section logo-section--light" id="sectionLight">
-        <h2 class="logo-section-title">Auf Weiß</h2>
+      <section class="logo-section logo-section--light card">
         <div class="logo-stage" aria-label="Zweifarbiges Logo auf hellem Grund">
           <div id="logoBase" class="logo-layer logo-base"></div>
           <div id="logoTop" class="logo-layer logo-top"></div>
         </div>
       </section>
 
-      <section class="logo-section logo-section--dark">
-        <h2 class="logo-section-title">Auf Schwarz</h2>
+      <section class="logo-section logo-section--dark card card--dark">
         <div class="logo-stage" aria-label="Zweifarbiges Logo auf dunklem Grund">
           <div id="logoBaseDark" class="logo-layer logo-base"></div>
           <div id="logoTopDark" class="logo-layer logo-top"></div>
         </div>
+      </section>
+
+      <section class="save-section card">
+        <h2 class="save-section-title">Farben lokal speichern</h2>
+        <p id="storageHint" class="storage-hint" role="status" aria-live="polite"></p>
+        <label class="save-name-label">
+          <span>Name der Farbvariante</span>
+          <input type="text" id="variantName" class="save-name-input" placeholder="z. B. Corporate, Print, …" maxlength="80" />
+        </label>
+        <div class="save-actions">
+          <button type="button" id="btnSave" class="btn btn--primary">Aktuelle Farben speichern</button>
+          <button type="button" id="btnLoad" class="btn btn--secondary">Gespeicherte Farben laden</button>
+        </div>
+        <div id="savedPreview" class="saved-preview" aria-live="polite"></div>
+        <p id="saveStatus" class="save-status" aria-live="polite"></p>
       </section>
     </main>
 
@@ -75,9 +102,112 @@
           document.body.style.backgroundColor = hexToRgba(hex, 0.1);
         }
 
+        var STORAGE_KEY = "gw-logofarben";
+        var btnSave = document.getElementById("btnSave");
+        var btnLoad = document.getElementById("btnLoad");
+        var saveStatus = document.getElementById("saveStatus");
+        var savedPreview = document.getElementById("savedPreview");
+        var storageHint = document.getElementById("storageHint");
+        var variantNameInput = document.getElementById("variantName");
+
+        function storageAvailable() {
+          try {
+            var key = "__gw_test__";
+            localStorage.setItem(key, "1");
+            localStorage.removeItem(key);
+            return true;
+          } catch (e) {
+            return false;
+          }
+        }
+
+        function getSavedData() {
+          try {
+            var raw = localStorage.getItem(STORAGE_KEY);
+            return raw ? JSON.parse(raw) : null;
+          } catch (e) {
+            return null;
+          }
+        }
+
+        function showSavedPreview() {
+          if (!savedPreview) return;
+          var data = getSavedData();
+          if (!data) {
+            savedPreview.innerHTML = "<strong>Gespeicherte Variante:</strong> Keine.";
+            savedPreview.className = "saved-preview saved-preview--empty";
+            return;
+          }
+          var name = (data.name && data.name.trim()) ? data.name.trim() : "(ohne Name)";
+          var base = data.base || "—";
+          var top = data.top || "—";
+          savedPreview.innerHTML =
+            "<strong>Gespeicherte Variante:</strong> " + escapeHtml(name) + "<br>" +
+            "GET-VIZE: <code>" + escapeHtml(base) + "</code> <span class=\"swatch\" style=\"background:" + escapeHtml(base) + "\"></span><br>" +
+            "V: <code>" + escapeHtml(top) + "</code> <span class=\"swatch\" style=\"background:" + escapeHtml(top) + "\"></span>";
+          savedPreview.className = "saved-preview";
+        }
+
+        function escapeHtml(s) {
+          var div = document.createElement("div");
+          div.textContent = s;
+          return div.innerHTML;
+        }
+
+        function saveColors() {
+          if (!storageAvailable()) {
+            if (saveStatus) { saveStatus.textContent = "Speichern nicht möglich (z. B. bei datei:// oder privatem Modus). Seite über einen lokalen Server öffnen."; saveStatus.className = "save-status save-status--error"; }
+            return;
+          }
+          try {
+            var data = {
+              name: variantNameInput ? variantNameInput.value.trim() : "",
+              base: colorBaseInput.value,
+              top: colorTopInput.value
+            };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            showSavedPreview();
+            if (saveStatus) { saveStatus.textContent = "Farben gespeichert."; saveStatus.className = "save-status save-status--ok"; }
+          } catch (e) {
+            if (saveStatus) { saveStatus.textContent = "Speichern fehlgeschlagen: " + (e.message || e); saveStatus.className = "save-status save-status--error"; }
+          }
+        }
+
+        function loadColors(silent) {
+          if (!storageAvailable()) {
+            if (!silent && saveStatus) { saveStatus.textContent = "Laden nicht möglich (z. B. bei datei://). Seite über einen lokalen Server öffnen."; saveStatus.className = "save-status save-status--error"; }
+            if (storageHint) storageHint.textContent = "Hinweis: Lokaler Speicher funktioniert nur, wenn die Seite über http(s) oder einen lokalen Server geöffnet wird (nicht bei datei://).";
+            return;
+          }
+          try {
+            var data = getSavedData();
+            if (!data) {
+              if (!silent && saveStatus) saveStatus.textContent = "Keine gespeicherten Farben.";
+              showSavedPreview();
+              return;
+            }
+            if (variantNameInput && data.name !== undefined) variantNameInput.value = data.name || "";
+            if (data.base) { colorBaseInput.value = data.base; updateBaseColor(); }
+            if (data.top) { colorTopInput.value = data.top; updateTopColor(); }
+            showSavedPreview();
+            if (saveStatus) { saveStatus.textContent = "Farben geladen."; saveStatus.className = "save-status save-status--ok"; }
+          } catch (e) {
+            if (saveStatus) { saveStatus.textContent = "Laden fehlgeschlagen: " + (e.message || e); saveStatus.className = "save-status save-status--error"; }
+          }
+        }
+
+        if (storageHint) {
+          if (!storageAvailable()) storageHint.textContent = "Hinweis: Speichern/Laden funktioniert nur über http(s) oder einen lokalen Server (nicht bei datei://).";
+          else storageHint.textContent = "";
+        }
+
         colorBaseInput.addEventListener("input", updateBaseColor);
         colorTopInput.addEventListener("input", updateTopColor);
+        if (btnSave) btnSave.addEventListener("click", saveColors);
+        if (btnLoad) btnLoad.addEventListener("click", function () { loadColors(false); });
 
+        loadColors(true);
+        showSavedPreview();
         updateBaseColor();
         updateTopColor();
       })();
