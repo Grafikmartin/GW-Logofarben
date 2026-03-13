@@ -58,7 +58,7 @@
         </label>
         <div class="save-actions">
           <button type="button" id="btnSave" class="btn btn--primary">Aktuelle Farben speichern</button>
-          <button type="button" id="btnLoad" class="btn btn--secondary">Gespeicherte Farben laden</button>
+          <button type="button" id="btnLoad" class="btn btn--secondary">Letzte gespeicherte laden</button>
         </div>
         <div id="savedPreview" class="saved-preview" aria-live="polite"></div>
         <p id="saveStatus" class="save-status" aria-live="polite"></p>
@@ -109,6 +109,8 @@
         }
 
         var STORAGE_KEY = "gw-logofarben";
+        var STORAGE_KEY_LIST = "gw-logofarben:list";
+        var MAX_VARIANTS = 10;
         var btnSave = document.getElementById("btnSave");
         var btnLoad = document.getElementById("btnLoad");
         var saveStatus = document.getElementById("saveStatus");
@@ -136,21 +138,85 @@
           }
         }
 
+        function getSavedList() {
+          try {
+            var raw = localStorage.getItem(STORAGE_KEY_LIST);
+            var parsed = raw ? JSON.parse(raw) : [];
+            return Array.isArray(parsed) ? parsed : [];
+          } catch (e) {
+            return [];
+          }
+        }
+
+        function setSavedList(list) {
+          localStorage.setItem(STORAGE_KEY_LIST, JSON.stringify(list));
+        }
+
+        function normalizeVariant(v) {
+          if (!v) return null;
+          var base = v.base;
+          var top = v.top;
+          if (!base || !top) return null;
+          var name = (v.name || "").toString();
+          var id = (v.id || "").toString();
+          var createdAt = typeof v.createdAt === "number" ? v.createdAt : Date.now();
+          if (!id) id = createdAt + "-" + Math.random().toString(16).slice(2);
+          return { id: id, name: name, base: base, top: top, createdAt: createdAt };
+        }
+
+        function getNameOrFallback() {
+          var name = variantNameInput ? variantNameInput.value.trim() : "";
+          if (name) return name;
+          return colorBaseInput.value + ", " + colorTopInput.value;
+        }
+
+        function applyVariant(v, silent) {
+          if (!v) return;
+          if (variantNameInput) variantNameInput.value = v.name || "";
+          if (v.base) { colorBaseInput.value = v.base; updateBaseColor(); }
+          if (v.top) { colorTopInput.value = v.top; updateTopColor(); }
+          if (!silent && saveStatus) { saveStatus.textContent = "Farben geladen."; saveStatus.className = "save-status save-status--ok"; }
+        }
+
+        function deleteVariantById(id) {
+          if (!storageAvailable()) return;
+          var list = getSavedList().filter(function (v) { return v && v.id !== id; });
+          setSavedList(list);
+          showSavedPreview();
+          if (saveStatus) { saveStatus.textContent = "Variante gelöscht."; saveStatus.className = "save-status save-status--ok"; }
+        }
+
         function showSavedPreview() {
           if (!savedPreview) return;
-          var data = getSavedData();
-          if (!data) {
-            savedPreview.innerHTML = "<strong>Gespeicherte Variante:</strong> Keine.";
+          var list = getSavedList();
+          if (!list.length) {
+            savedPreview.innerHTML = "<strong>Gespeicherte Varianten:</strong> Keine.";
             savedPreview.className = "saved-preview saved-preview--empty";
             return;
           }
-          var name = (data.name && data.name.trim()) ? data.name.trim() : "(ohne Name)";
-          var base = data.base || "—";
-          var top = data.top || "—";
-          savedPreview.innerHTML =
-            "<strong>Gespeicherte Variante:</strong> " + escapeHtml(name) + "<br>" +
-            "GET-VIZE: <code>" + escapeHtml(base) + "</code> <span class=\"swatch\" style=\"background:" + escapeHtml(base) + "\"></span><br>" +
-            "V: <code>" + escapeHtml(top) + "</code> <span class=\"swatch\" style=\"background:" + escapeHtml(top) + "\"></span>";
+          var html = "<strong>Gespeicherte Varianten</strong> <span class=\"saved-count\">(" + list.length + "/10)</span>";
+          html += "<div class=\"variants\">";
+          for (var i = 0; i < list.length; i++) {
+            var v = list[i];
+            var name = (v.name && v.name.trim()) ? v.name.trim() : "(ohne Name)";
+            html += "<div class=\"variant\" data-id=\"" + escapeHtml(v.id) + "\">";
+            html +=   "<div class=\"variant-main\">";
+            html +=     "<div class=\"variant-name\">" + escapeHtml(name) + "</div>";
+            html +=     "<div class=\"variant-codes\">";
+            html +=       "<span class=\"code\">GET-VIZE <code>" + escapeHtml(v.base) + "</code></span>";
+            html +=       "<span class=\"swatch\" style=\"background:" + escapeHtml(v.base) + "\"></span>";
+            html +=       "<span class=\"code\">V <code>" + escapeHtml(v.top) + "</code></span>";
+            html +=       "<span class=\"swatch\" style=\"background:" + escapeHtml(v.top) + "\"></span>";
+            html +=     "</div>";
+            html +=   "</div>";
+            html +=   "<div class=\"variant-actions\">";
+            html +=     "<button type=\"button\" class=\"btn btn--mini btn--secondary\" data-action=\"load\" data-id=\"" + escapeHtml(v.id) + "\">Laden</button>";
+            html +=     "<button type=\"button\" class=\"btn btn--mini btn--danger\" data-action=\"delete\" data-id=\"" + escapeHtml(v.id) + "\">Löschen</button>";
+            html +=   "</div>";
+            html += "</div>";
+          }
+          html += "</div>";
+          savedPreview.innerHTML = html;
           savedPreview.className = "saved-preview";
         }
 
@@ -166,12 +232,27 @@
             return;
           }
           try {
-            var data = {
-              name: variantNameInput ? variantNameInput.value.trim() : "",
+            var now = Date.now();
+            var data = normalizeVariant({
+              id: "",
+              createdAt: now,
+              name: getNameOrFallback(),
               base: colorBaseInput.value,
               top: colorTopInput.value
-            };
+            });
+            if (!data) throw new Error("Ungültige Farben");
+
+            // Legacy: letzte gespeicherte Variante
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+
+            // Neue Liste (max. 10). Wenn Name bereits existiert (nicht leer), ersetze.
+            var list = getSavedList();
+            if (data.name && data.name.trim()) {
+              list = list.filter(function (v) { return !(v && v.name && v.name.trim() === data.name.trim()); });
+            }
+            list.unshift(data);
+            if (list.length > MAX_VARIANTS) list = list.slice(0, MAX_VARIANTS);
+            setSavedList(list);
             showSavedPreview();
             if (saveStatus) { saveStatus.textContent = "Farben gespeichert."; saveStatus.className = "save-status save-status--ok"; }
           } catch (e) {
@@ -187,14 +268,24 @@
           }
           try {
             var data = getSavedData();
-            if (!data) {
+            var list = getSavedList();
+
+            // Migration: wenn nur Legacy existiert, in Liste übernehmen
+            if ((!list || !list.length) && data && !Array.isArray(data)) {
+              var migrated = normalizeVariant(data);
+              if (migrated) {
+                setSavedList([migrated]);
+                list = [migrated];
+              }
+            }
+
+            var latest = list && list.length ? list[0] : (data && !Array.isArray(data) ? normalizeVariant(data) : null);
+            if (!latest) {
               if (!silent && saveStatus) saveStatus.textContent = "Keine gespeicherten Farben.";
               showSavedPreview();
               return;
             }
-            if (variantNameInput && data.name !== undefined) variantNameInput.value = data.name || "";
-            if (data.base) { colorBaseInput.value = data.base; updateBaseColor(); }
-            if (data.top) { colorTopInput.value = data.top; updateTopColor(); }
+            applyVariant(latest, true);
             showSavedPreview();
             if (saveStatus) { saveStatus.textContent = "Farben geladen."; saveStatus.className = "save-status save-status--ok"; }
           } catch (e) {
@@ -211,6 +302,27 @@
         colorTopInput.addEventListener("input", updateTopColor);
         if (btnSave) btnSave.addEventListener("click", saveColors);
         if (btnLoad) btnLoad.addEventListener("click", function () { loadColors(false); });
+        if (savedPreview) {
+          savedPreview.addEventListener("click", function (e) {
+            var t = e.target;
+            if (!t || !t.getAttribute) return;
+            var action = t.getAttribute("data-action");
+            var id = t.getAttribute("data-id");
+            if (!action || !id) return;
+            if (action === "delete") {
+              deleteVariantById(id);
+              return;
+            }
+            if (action === "load") {
+              var list = getSavedList();
+              var v = null;
+              for (var i = 0; i < list.length; i++) if (list[i] && list[i].id === id) { v = list[i]; break; }
+              applyVariant(v, false);
+              showSavedPreview();
+              return;
+            }
+          });
+        }
 
         loadColors(true);
         showSavedPreview();
