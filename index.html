@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Logo Farbwahl</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="page">
+      <section class="controls">
+        <label class="color-control">
+          <span>Farbe für GET-VIZE.svg</span>
+          <input type="color" id="colorBase" value="#b7beb8" />
+          <output class="color-value" id="valueBase" for="colorBase">#b7beb8</output>
+        </label>
+
+        <label class="color-control">
+          <span>Farbe für ---V----.svg</span>
+          <input type="color" id="colorTop" value="#3f9440" />
+          <output class="color-value" id="valueTop" for="colorTop">#3f9440</output>
+        </label>
+      </section>
+
+      <section class="logo-section logo-section--light" id="sectionLight">
+        <h2 class="logo-section-title">Auf Weiß</h2>
+        <div class="logo-stage" aria-label="Zweifarbiges Logo auf hellem Grund">
+          <div id="logoBase" class="logo-layer logo-base"></div>
+          <div id="logoTop" class="logo-layer logo-top"></div>
+        </div>
+      </section>
+
+      <section class="logo-section logo-section--dark">
+        <h2 class="logo-section-title">Auf Schwarz</h2>
+        <div class="logo-stage" aria-label="Zweifarbiges Logo auf dunklem Grund">
+          <div id="logoBaseDark" class="logo-layer logo-base"></div>
+          <div id="logoTopDark" class="logo-layer logo-top"></div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      (function () {
+        var colorBaseInput = document.getElementById("colorBase");
+        var colorTopInput = document.getElementById("colorTop");
+        var valueBase = document.getElementById("valueBase");
+        var valueTop = document.getElementById("valueTop");
+        var logoBase = document.getElementById("logoBase");
+        var logoTop = document.getElementById("logoTop");
+        var logoBaseDark = document.getElementById("logoBaseDark");
+        var logoTopDark = document.getElementById("logoTopDark");
+        var sectionLight = document.getElementById("sectionLight");
+
+        if (!colorBaseInput || !colorTopInput || !logoBase || !logoTop) return;
+
+        function hexToRgba(hex, alpha) {
+          var m = hex.slice(1).match(hex.length === 7 ? /(\w{2})(\w{2})(\w{2})/ : /(\w)(\w)(\w)/);
+          if (!m) return "transparent";
+          var r = parseInt(m[1].length === 2 ? m[1] : m[1] + m[1], 16);
+          var g = parseInt(m[2].length === 2 ? m[2] : m[2] + m[2], 16);
+          var b = parseInt(m[3].length === 2 ? m[3] : m[3] + m[3], 16);
+          return "rgba(" + r + "," + g + "," + b + "," + alpha + ")";
+        }
+
+        function updateBaseColor() {
+          var hex = colorBaseInput.value;
+          logoBase.style.backgroundColor = hex;
+          if (logoBaseDark) logoBaseDark.style.backgroundColor = hex;
+          if (valueBase) valueBase.textContent = hex;
+        }
+        function updateTopColor() {
+          var hex = colorTopInput.value;
+          logoTop.style.backgroundColor = hex;
+          if (logoTopDark) logoTopDark.style.backgroundColor = hex;
+          if (valueTop) valueTop.textContent = hex;
+          if (sectionLight) sectionLight.style.backgroundColor = hexToRgba(hex, 0.2);
+        }
+
+        colorBaseInput.addEventListener("input", updateBaseColor);
+        colorTopInput.addEventListener("input", updateTopColor);
+
+        updateBaseColor();
+        updateTopColor();
+      })();
+    </script>
+  </body>
+</html>
