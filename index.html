@@ -49,7 +49,6 @@
         var logoTop = document.getElementById("logoTop");
         var logoBaseDark = document.getElementById("logoBaseDark");
         var logoTopDark = document.getElementById("logoTopDark");
-        var sectionLight = document.getElementById("sectionLight");
 
         if (!colorBaseInput || !colorTopInput || !logoBase || !logoTop) return;
 
@@ -73,7 +72,7 @@
           logoTop.style.backgroundColor = hex;
           if (logoTopDark) logoTopDark.style.backgroundColor = hex;
           if (valueTop) valueTop.textContent = hex;
-          if (sectionLight) sectionLight.style.backgroundColor = hexToRgba(hex, 0.2);
+          document.body.style.backgroundColor = hexToRgba(hex, 0.1);
         }
 
         colorBaseInput.addEventListener("input", updateBaseColor);
